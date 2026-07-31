@@ -38,7 +38,7 @@ A polished 2D pixel-art arcade shooter built with **Python** and **Pygame**.
 | W / Up Arrow | Move Up |
 | S / Down Arrow | Move Down |
 | Space | Shoot |
-| Esc | Pause |
+| Esc / p | Pause |
 | F11 | Toggle Fullscreen |
 
 ## Installation
