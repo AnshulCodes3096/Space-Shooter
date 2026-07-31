@@ -542,7 +542,7 @@ def process_enemy(enemy,enemies,enemy_rect,bullets,player_rect,player,shield,pow
             if score>highscore:
                 highscore=score
                 save_highscore(highscore)
-            if random.random()<0.58:
+            if random.random()<0.25:
                 powerup_type=random.choice([
                     "health",
                     "rapid_fire",
