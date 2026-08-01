@@ -1,14 +1,17 @@
-import pygame
+#imports
+import pygame 
 import random
 import os
 from dataclasses import dataclass,field
 from typing import Optional
-pygame.init()
+#initializing pygame(music and channels as well)
+pygame.init() 
 pygame.mixer.init()
 pygame.mixer.set_num_channels(16)
+#asset folders
 IMAGE_FOLDER="images"
 MUSIC_FOLDER="music"
-
+#window setup
 screen_width=1400
 screen_height=700
 windowed_width=screen_width
@@ -17,15 +20,13 @@ gamewindow=pygame.display.set_mode((screen_width,screen_height),pygame.RESIZABLE
 game_surface=pygame.Surface((screen_width,screen_height))
 pygame.display.set_caption("Space Shooter")
 fullscreen=False
- 
 clock=pygame.time.Clock()
 font=pygame.font.SysFont(None,50)
- 
 icon=pygame.image.load(os.path.join(IMAGE_FOLDER,"rocket.png"))
 pygame.display.set_icon(icon)
-
 boss_width=250
 boss_height_sprite=150
+#load images
 restart_img=         pygame.image.load(os.path.join(IMAGE_FOLDER,"restart.png"))
 play_button_img=     pygame.image.load(os.path.join(IMAGE_FOLDER,"play.png"))
 resume_img=          pygame.image.load(os.path.join(IMAGE_FOLDER,"resume.png"))
@@ -63,7 +64,7 @@ rapid_fire_img=      pygame.image.load(os.path.join(IMAGE_FOLDER,"rapid_fire.png
 shield_img=          pygame.image.load(os.path.join(IMAGE_FOLDER,"shield.png"))
 double_shoot_img=     pygame.image.load(os.path.join(IMAGE_FOLDER,"double_shoot.png"))
 shield_shell_img=    pygame.image.load(os.path.join(IMAGE_FOLDER,"shield_shell.png"))
-
+#scale images
 restart_img=         pygame.transform.scale(restart_img,(280,80))
 play_button_img=     pygame.transform.scale(play_button_img,(210,70))
 resume_img=          pygame.transform.scale(resume_img,(280,80))
@@ -101,7 +102,7 @@ rapid_fire_img=      pygame.transform.scale(rapid_fire_img,(40,40))
 shield_img=          pygame.transform.scale(shield_img,(40,40))
 double_shoot_img=     pygame.transform.scale(double_shoot_img,(40,40))
 shield_shell_img=    pygame.transform.scale(shield_shell_img,(90,90))
-
+#load audios
 gun_shooting_tune=pygame.mixer.Sound(os.path.join(MUSIC_FOLDER,"gun_shooting_tune.mp3"))
 gun_shooting_tune.set_volume(0.4)
 boss_explosion_tune=pygame.mixer.Sound(os.path.join(MUSIC_FOLDER,"boss_explosion.mp3"))
@@ -115,13 +116,17 @@ game_over_tune=pygame.mixer.Sound(os.path.join(MUSIC_FOLDER,"game_over_tune.mp3"
 pygame.mixer.music.load(os.path.join(MUSIC_FOLDER,"background_music.mp3"))
 pygame.mixer.music.set_volume(0.4)
  
- 
+#asset collections
 enemy_imgs=[
     enemy_1_img,
     enemy_2_img,
     enemy_3_img,
     enemy_4_img
 ]
+fast_enemy_imgs=[pygame.transform.scale(enemy_1_img,(40,40)),
+                 pygame.transform.scale(enemy_2_img,(40,40)),
+                 pygame.transform.scale(enemy_3_img,(40,40)),
+                 pygame.transform.scale(enemy_4_img,(40,40)),]
 
 powerup_imgs={
     "health":health_powerup_img,
@@ -135,7 +140,7 @@ powerup_imgs={
 # Minimum window size so the game surface never gets scaled down to something unusable
 MIN_WINDOW_WIDTH=400
 MIN_WINDOW_HEIGHT=200
-
+#Game constants
 POWERUP_SPEED=3
 BULLET_SPEED=7.5
 FAST_ENEMY_CHANCE=0.15 
@@ -144,7 +149,8 @@ ZIGZAG_ENEMY_CHANCE=0.10
 SHOOTER_ENEMY_CHANCE=0.05
 MARGIN=80
 ZIGZAG_RANGE=150
-SHOOTER_FIRE_DELAY=random.randint(1300,1700)
+SHOOTER_FIRE_DELAY=1500
+#Dataclasses
 @dataclass
 class Player:
     x:int
@@ -210,7 +216,7 @@ class BossState:
     bullets:list=field(default_factory=list)
 
 
-def load_highscore():
+def load_highscore():#load the highscore
     if not os.path.exists("highscore.txt"):
         with open("highscore.txt","w") as f:
             f.write("0")
@@ -218,12 +224,12 @@ def load_highscore():
     with open("highscore.txt","r") as f:
         return int(f.read())
 
-def save_highscore(highscore):
+def save_highscore(highscore):#saves the highscore
     with open("highscore.txt","w")as f:
         f.write(str(highscore))
  
 desktop_width,desktop_height=pygame.display.get_desktop_sizes()[0]
-def toggle_fullscreen():
+def toggle_fullscreen():#toggle between fulllscreen and windowed mode
     global gamewindow,fullscreen
     fullscreen=not fullscreen
     if fullscreen:
@@ -231,11 +237,7 @@ def toggle_fullscreen():
     else:
         gamewindow=pygame.display.set_mode((windowed_width,windowed_height),pygame.RESIZABLE)
  
-def handle_resize(event):
-    # Called whenever the user drags the window border to resize it.
-    # Since display_surface() already scales game_surface to whatever
-    # size gamewindow is, all we need to do is rebuild the window at
-    # the new size and remember it for when we leave fullscreen later.
+def handle_resize(event):#window resizeing
     global gamewindow,windowed_width,windowed_height
     if fullscreen:
         return
@@ -244,7 +246,7 @@ def handle_resize(event):
     windowed_width,windowed_height=new_width,new_height
     gamewindow=pygame.display.set_mode((new_width,new_height),pygame.RESIZABLE)
  
-def display_surface(shake_x=0,shake_y=0):
+def display_surface(shake_x=0,shake_y=0):#display helpers
     window_width,window_height=gamewindow.get_size()
     scaled_surface=pygame.transform.scale(game_surface,(window_width,window_height))
     scaled_shake_x=int(shake_x*(window_width/screen_width))
@@ -257,11 +259,11 @@ def get_scaled_mouse_position(mouse_position):
     mouse_y=mouse_position[1]*(screen_height/window_height)
     return mouse_x,mouse_y
  
-def home_screen():
+def home_screen():#Menu screen(home screen)
     
     play_x=screen_width//2-105
     play_y=365
-    play_rect=pygame.Rect(play_x,play_y,210,70)
+    play_rect=pygame.Rect(play_x,play_y,play_button_img.get_width(),play_button_img.get_height())
     
     while True:
         game_surface.blit(home_screen_img,(0,0))
@@ -284,22 +286,22 @@ def home_screen():
         pygame.display.update()
         clock.tick(60)
  
-def pause_screen():
+def pause_screen():#Menu screen(pause screen)
 
     pause_x=screen_width//2-250
     pause_y=30
     resume_x=screen_width//2-140
     resume_y=270
-    resume_rect=pygame.Rect(resume_x,resume_y,280,80)
+    resume_rect=pygame.Rect(resume_x,resume_y,resume_img.get_width(),resume_img.get_height())
     restart_x=screen_width//2-340
     restart_y=400
-    restart_rect=pygame.Rect(restart_x,restart_y,280,80)
+    restart_rect=pygame.Rect(restart_x,restart_y,restart_img.get_width(),restart_img.get_height())
     home_x=screen_width//2+100
     home_y=400
-    home_rect=pygame.Rect(home_x,home_y,240,80)
+    home_rect=pygame.Rect(home_x,home_y,home_img.get_width(),home_img.get_height())
     quit_x=screen_width//2-125
     quit_y=530
-    quit_rect=pygame.Rect(quit_x,quit_y,250,80)
+    quit_rect=pygame.Rect(quit_x,quit_y,quit_img.get_width(),quit_img.get_height())
 
     pause_overlay=pygame.Surface((screen_width,screen_height),pygame.SRCALPHA)
     pause_overlay.fill((0,0,0,170))
@@ -349,17 +351,17 @@ def pause_screen():
         pygame.display.update()
         clock.tick(60)
 
-def game_over_screen(score):
+def game_over_screen(score):#Menu screen(game over screen)
     game_over_tune.play()
     quit_x=screen_width//2-525
     quit_y=550
-    quit_rect=pygame.Rect(quit_x,quit_y,250,80)
+    quit_rect=pygame.Rect(quit_x,quit_y,quit_img.get_width(),quit_img.get_height())
     restart_x=screen_width//2-125
     restart_y=550
-    restart_rect=pygame.Rect(restart_x,restart_y,280,80)
+    restart_rect=pygame.Rect(restart_x,restart_y,restart_img.get_width(),restart_img.get_height())
     home_x=screen_width//2+275
     home_y=550
-    home_rect=pygame.Rect(home_x,home_y,240,80)
+    home_rect=pygame.Rect(home_x,home_y,home_img.get_width(),home_img.get_height())
     while True:
         game_surface.blit(game_over_img,(0,0))
         game_surface.blit(quit_img,(quit_x,quit_y))
@@ -398,7 +400,7 @@ def game_over_screen(score):
         pygame.display.update()
         clock.tick(60)
 
-
+"""PLAYER SYSTEM"""
 def handle_player_input(player):
         keys=pygame.key.get_pressed()
         if (keys[pygame.K_LEFT] or keys[pygame.K_a]) and player.x>0:
@@ -452,12 +454,13 @@ def activate_powerup(powerup_type,player,weapon,shield,current_time):
     elif powerup_type=="shield":
         shield.active=True
 
+"""ENEMY SYSTEM"""
 def spawn_enemy(speed,enemy_type="normal"):
     if enemy_type=="normal":
         image=random.choice(enemy_imgs)
         enemy_speed=speed
     elif enemy_type=="fast":
-        image=pygame.transform.scale(random.choice(enemy_imgs),(40,40))
+        image=random.choice(fast_enemy_imgs)
         enemy_speed=speed*1.8
     elif enemy_type=="carrier":
         image=enemy_5_img
@@ -474,7 +477,7 @@ def spawn_enemy(speed,enemy_type="normal"):
         x=random.randint(ZIGZAG_RANGE,screen_width-image.get_width()-ZIGZAG_RANGE)
     else:
         x=random.randint(0,screen_width-image.get_width())
-    return EnemyState(x=x,y=-image.get_height(),speed=enemy_speed,image=image,enemy_type=enemy_type,health=1,direction=1,last_shot_time=0)
+    return EnemyState(x=x,y=-image.get_height(),speed=enemy_speed,image=image,enemy_type=enemy_type,health=1,direction=1,last_shot_time=pygame.time.get_ticks()-random.randint(0,SHOOTER_FIRE_DELAY))
 
 
 def spawn_next_enemy(enemy_base_speed):
@@ -532,7 +535,7 @@ def player_take_damage(player,shield):
 
 def process_enemy(enemy,enemies,enemy_rect,bullets,player_rect,player,shield,powerups,score,highscore,enemy_base_speed):
     for bullet in bullets[:]:
-        bullet_rect=pygame.Rect(bullet[0],bullet[1],35,35)
+        bullet_rect=pygame.Rect(bullet[0],bullet[1],bullet_img.get_width(),bullet_img.get_height())
  
         if bullet_rect.colliderect(enemy_rect):
             bullets.remove(bullet)
@@ -564,6 +567,7 @@ def process_enemy(enemy,enemies,enemy_rect,bullets,player_rect,player,shield,pow
 
     return enemy,None,score,highscore,enemy_base_speed
 
+"""BOSS SYSTEM"""
 def setup_boss(boss):
     if boss.level==1:
         boss.image=boss_1_img
@@ -671,7 +675,7 @@ def update_boss_bullets(player_rect,boss,player,shield):
         boss_bullet[0]+=boss_bullet[2]
         boss_bullet[1]+=boss_bullet[3]
         if boss_bullet[4]=="bullet":
-            boss_bullet_rect=pygame.Rect(boss_bullet[0],boss_bullet[1],30,60)
+            boss_bullet_rect=pygame.Rect(boss_bullet[0],boss_bullet[1],boss_bullet_1_img.get_width(),boss_bullet_1_img.get_height())
             if boss_bullet_rect.colliderect(player_rect):
                 boss.bullets.remove(boss_bullet)
                 player_take_damage(player,shield)
@@ -680,7 +684,7 @@ def update_boss_bullets(player_rect,boss,player,shield):
             else:
                 game_surface.blit(boss_bullet_1_img,(boss_bullet[0],boss_bullet[1])) 
         elif boss_bullet[4]=="beam":
-            beam_rect=pygame.Rect(boss_bullet[0],boss_bullet[1],40,300)
+            beam_rect=pygame.Rect(boss_bullet[0],boss_bullet[1],boss_bullet_2_img.get_width(),boss_bullet_2_img.get_height())
             if beam_rect.colliderect(player_rect):
                 boss.bullets.remove(boss_bullet)
                 player_take_damage(player,shield)
@@ -692,7 +696,7 @@ def update_boss_bullets(player_rect,boss,player,shield):
 
 def boss_take_damage(current_time,boss_rect,boss,bullets):
     for bullet in bullets[:]:
-        bullet_rect=pygame.Rect(bullet[0],bullet[1],30,30)
+        bullet_rect=pygame.Rect(bullet[0],bullet[1],bullet_img.get_width(),bullet_img.get_height())
         if bullet_rect.colliderect(boss_rect):
             bullets.remove(bullet)
             enemy_shoot_tune.play()
@@ -712,6 +716,8 @@ def boss_take_damage(current_time,boss_rect,boss,bullets):
 def draw_boss(boss):
     game_surface.blit(boss.image,(boss.x,boss.y))
 
+
+"""VISUAL EFFECTS"""
 def update_screen_shake(current_time,screen_shaking,shake_start_time,shake_duration,shake_strength):
     shake_x=0
     shake_y=0
@@ -729,7 +735,7 @@ def update_screen_shake(current_time,screen_shaking,shake_start_time,shake_durat
 def start_screen_shake(current_time,duration,strength):
     return True,current_time,duration,strength
 
-def handle_boss_defeat(boss,score,highscore):
+def handle_boss_defeat(boss,score,highscore):#Game helpers
     score+=1000
     if score>highscore:
         highscore=score
@@ -742,7 +748,7 @@ def boss_inactive(boss):
     return(not boss.active and not boss.entry and not boss.defeated)
 
 
-def draw_entities(player,enemies,shield,player_dead,boss):
+def draw_entities(player,enemies,shield,player_dead,boss):#Rendering
     if boss_inactive(boss):
         for enemy in enemies:
             game_surface.blit(enemy.image,(enemy.x,enemy.y))
@@ -771,7 +777,6 @@ def draw_hud(player,score,highscore,boss):
         game_surface.blit(boss_health_img,(screen_width//2-125,15))
         boss_bar_x=screen_width//2-180
         boss_bar_y=55
-        # pygame.draw.rect  game_surface,"#000000",(450,65,250,20))
         health_width=int((boss.health/boss.max_health)*225)
         pygame.draw.rect(game_surface,"#FF0000",(screen_width//2-125,65,health_width,20))
         game_surface.blit(boss_bar_img,(boss_bar_x,boss_bar_y))
@@ -781,7 +786,7 @@ def create_normal_enemy(x,y,speed):
     return EnemyState(x=x,y=y,speed=speed,image=random.choice(enemy_imgs),enemy_type="normal",health=1,direction=1,last_shot_time=0)
 
 
- 
+"""MAIN GAME LOOP"""
 def shooting_game():
     pygame.mixer.music.play(-1)
     player=Player(x=100,y=500,velocity=8,lives=3)
@@ -876,7 +881,7 @@ def shooting_game():
                 boss.entry=False
                 boss.active=True
                 (screen_shaking,shake_start_time,shake_duration,shake_strength)=start_screen_shake(current_time,600,18)
-        player_rect=pygame.Rect(player.x,player.y,40,60)
+        player_rect=pygame.Rect(player.x,player.y,player_img.get_width(),player_img.get_height())
         if boss_inactive(boss):
             for i in range(len(enemies)-1,-1,-1):
                 enemy=enemies[i]
@@ -946,7 +951,8 @@ def shooting_game():
  
         clock.tick(60)
         pygame.display.update()
-                
+
+"""GAME ENTRY POINT"""
 while True:
     home_screen() 
     while True:
